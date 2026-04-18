@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#0a0608"/>
+<title>Timeline — Rakshith & Reshma</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0608;
+  --gold:#d4af66;--gold-lt:#f0d080;--gold-dim:rgba(212,175,102,0.18);
+  --rose:#c8566a;--cream:#f5ede0;--muted:#7a6a5a;--text:#e8ddd0;
+  --fs-xs:clamp(.58rem,1.2vw,.68rem);
+  --fs-sm:clamp(.75rem,1.5vw,.85rem);
+  --fs-md:clamp(1rem,2.2vw,1.2rem);
+  --fs-lg:clamp(1.5rem,3.8vw,2.4rem);
+  --fs-xl:clamp(2rem,5vw,3.2rem);
+  --sp-sm:clamp(8px,1.8vw,14px);
+  --sp-md:clamp(14px,2.8vw,24px);
+  --sp-lg:clamp(22px,4vw,44px);
+}
+
+html{scroll-behavior:smooth;}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  font-family:'Jost',sans-serif;
+  color:var(--text);
+  overflow-x:hidden;
+  -webkit-text-size-adjust:100%;
+}
+
+/* grain overlay */
+body::before{
+  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size:150px;opacity:.4;
+}
+
+/* ambient glow */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 10% 20%,rgba(200,86,106,.05) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 35% at 90% 80%,rgba(212,175,102,.05) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 50% at 50% 50%,rgba(120,80,200,.03) 0%,transparent 70%);}
+
+/* back button */
+.back-btn{
+  position:fixed;top:clamp(14px,3vh,24px);left:clamp(14px,3vw,28px);z-index:60;
+  display:flex;align-items:center;gap:8px;padding:10px 18px;
+  border:1px solid rgba(212,175,102,.2);border-radius:99px;
+  background:rgba(10,6,8,.85);color:var(--gold);
+  font-family:'Jost',sans-serif;font-size:var(--fs-xs);font-weight:300;
+  letter-spacing:.18em;text-transform:uppercase;
+  cursor:pointer;text-decoration:none;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:border-color .3s,background .3s,transform .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.back-btn:hover{border-color:rgba(212,175,102,.5);background:rgba(212,175,102,.08);transform:translateY(-1px);}
+.back-btn svg{width:14px;height:14px;fill:none;stroke:var(--gold);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* PAGE WRAPPER */
+.page{
+  position:relative;z-index:10;
+  padding:clamp(90px,14vh,130px) var(--sp-md) clamp(60px,8vh,100px);
+  display:flex;flex-direction:column;align-items:center;
+  gap:var(--sp-lg);
+}
+
+/* HEADER */
+.header{
+  text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--sp-sm);
+  animation:riseIn 1s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes riseIn{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+
+.eyebrow-row{display:flex;align-items:center;gap:clamp(10px,2.5vw,20px);}
+.eline{height:1px;width:clamp(28px,7vw,70px);background:linear-gradient(90deg,transparent,var(--gold));}
+.eline.r{background:linear-gradient(90deg,var(--gold),transparent);}
+.edot{color:var(--gold);font-size:.9rem;filter:drop-shadow(0 0 5px var(--gold));}
+.eyebrow{font-size:var(--fs-xs);font-weight:200;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:var(--fs-xl);font-weight:300;color:var(--cream);line-height:1.1;}
+.page-title em{font-style:italic;color:var(--gold-lt);text-shadow:0 0 28px rgba(212,175,102,.4);}
+.page-sub{font-size:var(--fs-xs);font-weight:200;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;}
+
+/* TIMELINE CONTAINER */
+.timeline{
+  width:100%;max-width:900px;
+  position:relative;
+  display:flex;flex-direction:column;
+  gap:0;
+}
+
+/* center spine line */
+.timeline::before{
+  content:'';
+  position:absolute;
+  left:50%;top:0;bottom:0;
+  width:1px;
+  background:linear-gradient(to bottom,
+    transparent 0%,
+    rgba(212,175,102,.15) 5%,
+    rgba(212,175,102,.3) 20%,
+    rgba(212,175,102,.3) 80%,
+    rgba(212,175,102,.15) 95%,
+    transparent 100%);
+  transform:translateX(-50%);
+  z-index:0;
+}
+
+/* TIMELINE ENTRY */
+.entry{
+  display:grid;
+  grid-template-columns:1fr 60px 1fr;
+  align-items:start;
+  gap:0;
+  padding:clamp(24px,4vw,40px) 0;
+  opacity:0;
+  transform:translateY(40px);
+  transition:opacity .7s ease, transform .7s cubic-bezier(.16,1,.3,1);
+}
+.entry.visible{opacity:1;transform:translateY(0);}
+
+/* alternate sides */
+.entry:nth-child(odd) .entry-card{grid-column:1;justify-self:end;}
+.entry:nth-child(odd) .entry-spine{grid-column:2;}
+.entry:nth-child(odd) .entry-empty{grid-column:3;}
+
+.entry:nth-child(even) .entry-empty{grid-column:1;}
+.entry:nth-child(even) .entry-spine{grid-column:2;}
+.entry:nth-child(even) .entry-card{grid-column:3;justify-self:start;}
+
+/* spine / node */
+.entry-spine{
+  grid-column:2;
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:clamp(20px,3vw,32px);
+  position:relative;z-index:2;
+}
+.entry-node{
+  width:clamp(36px,5vw,48px);height:clamp(36px,5vw,48px);
+  border-radius:50%;
+  border:1px solid rgba(212,175,102,.4);
+  background:radial-gradient(circle,rgba(212,175,102,.15) 0%,rgba(10,6,8,.9) 70%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(.9rem,2vw,1.2rem);
+  box-shadow:0 0 20px rgba(212,175,102,.15),0 0 0 4px rgba(212,175,102,.05);
+  transition:box-shadow .3s,border-color .3s;
+  flex-shrink:0;
+}
+.entry:hover .entry-node{
+  border-color:rgba(212,175,102,.7);
+  box-shadow:0 0 30px rgba(212,175,102,.3),0 0 0 6px rgba(212,175,102,.08);
+}
+
+/* year badge */
+.entry-year{
+  margin-top:8px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(.7rem,1.5vw,.85rem);
+  font-weight:300;font-style:italic;
+  color:var(--gold);letter-spacing:.1em;
+  text-align:center;white-space:nowrap;
+}
+
+/* CARD */
+.entry-card{
+  width:100%;max-width:clamp(220px,38vw,380px);
+  background:linear-gradient(145deg,rgba(255,255,255,.03) 0%,rgba(255,255,255,.015) 100%);
+  border:1px solid var(--gold-dim);
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(212,175,102,.06);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s ease,border-color .35s;
+  cursor:default;
+}
+.entry-card:hover{
+  transform:translateY(-6px) scale(1.02);
+  box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(212,175,102,.3),0 0 40px rgba(212,175,102,.08);
+  border-color:rgba(212,175,102,.35);
+}
+
+/* card photo / art */
+.card-visual{
+  width:100%;
+  position:relative;overflow:hidden;
+  min-height:180px;
+  max-height:480px;
+}
+.card-visual img{
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:contain;
+  transition:transform .5s ease,filter .4s ease;
+}
+.entry-card:hover .card-visual img{transform:scale(1.06);filter:brightness(1.1) saturate(1.1);}
+.card-visual svg{position:absolute;inset:0;width:100%;height:100%;}
+.card-visual:has(img[src=""]), .card-visual:not(:has(img)){min-height:260px;}
+
+/* video support */
+.card-visual video{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  z-index:3;
+  position:absolute;
+  inset:0;
+  border-radius:0;
+  outline:none;
+  background:#000;
+}
+.card-visual video::-webkit-media-controls{
+  opacity:1;
+}
+.card-visual video::-webkit-media-controls-panel{
+  background:linear-gradient(transparent,rgba(0,0,0,0.6));
+}
+/* play icon overlay for video cards */
+.video-play-hint{
+  position:absolute;top:10px;right:10px;z-index:5;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(10,6,8,.75);
+  border:1px solid rgba(212,175,102,.35);
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+  opacity:0;transition:opacity .3s;
+}
+.video-play-hint svg{width:12px;height:12px;fill:var(--gold);}
+.entry-card:hover .video-play-hint{opacity:1;}
+
+/* shimmer on hover */
+.card-shimmer{
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.07) 50%,transparent 70%);
+  transform:translateX(-120%);transition:none;
+}
+.entry-card:hover .card-shimmer{transform:translateX(130%);transition:transform .65s ease;}
+
+/* card body */
+.card-body{padding:clamp(14px,2.5vw,22px);}
+
+.card-milestone{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:99px;
+  background:rgba(212,175,102,.07);
+  border:1px solid rgba(212,175,102,.2);
+  font-size:var(--fs-xs);letter-spacing:.18em;
+  text-transform:uppercase;color:var(--gold);
+  font-weight:300;margin-bottom:10px;
+}
+
+.card-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.05rem,2.5vw,1.35rem);
+  font-weight:400;color:var(--cream);
+  line-height:1.2;margin-bottom:8px;
+}
+
+.card-divider{
+  width:40px;height:1px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+  margin-bottom:10px;
+  transition:width .4s ease;
+}
+.entry-card:hover .card-divider{width:70px;}
+
+.card-note{
+  font-size:var(--fs-sm);font-weight:300;
+  color:rgba(232,221,208,.7);line-height:1.75;
+  font-style:italic;
+  font-family:'Cormorant Garamond',serif;
+}
+
+/* connector line from node to card */
+.entry-empty{display:flex;align-items:flex-start;padding-top:clamp(38px,5.5vw,52px);}
+.connector{
+  height:1px;
+  background:linear-gradient(90deg,rgba(212,175,102,.3),transparent);
+  flex:1;margin-top:0;
+}
+.entry:nth-child(even) .connector{
+  background:linear-gradient(270deg,rgba(212,175,102,.3),transparent);
+}
+
+/* END NODE */
+.timeline-end{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:clamp(16px,3vw,28px) 0;
+  position:relative;z-index:2;
+  opacity:0;transform:translateY(20px);
+  transition:opacity .7s ease .3s,transform .7s ease .3s;
+}
+.timeline-end.visible{opacity:1;transform:translateY(0);}
+.end-node{
+  width:clamp(50px,7vw,64px);height:clamp(50px,7vw,64px);
+  border-radius:50%;
+  border:1px solid rgba(212,175,102,.5);
+  background:radial-gradient(circle,rgba(212,175,102,.2) 0%,rgba(10,6,8,.95) 70%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(1.2rem,3vw,1.6rem);
+  box-shadow:0 0 40px rgba(212,175,102,.2),0 0 0 6px rgba(212,175,102,.06);
+  animation:pulseGold 3s ease-in-out infinite;
+}
+@keyframes pulseGold{
+  0%,100%{box-shadow:0 0 40px rgba(212,175,102,.2),0 0 0 6px rgba(212,175,102,.06);}
+  50%{box-shadow:0 0 60px rgba(212,175,102,.35),0 0 0 10px rgba(212,175,102,.1);}
+}
+.end-label{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:clamp(.85rem,2vw,1.05rem);font-weight:300;
+  color:var(--gold);letter-spacing:.15em;text-align:center;
+}
+
+/* MOBILE */
+/* ══ MOBILE ══ */
+@media(max-width:600px){
+  .timeline::before{left:24px;}
+  .entry{
+    grid-template-columns:48px 1fr;
+    grid-template-rows:auto;
+    padding:clamp(16px,3vw,28px) 0;
+  }
+  .entry:nth-child(odd) .entry-card,
+  .entry:nth-child(even) .entry-card{
+    grid-column:2;grid-row:1;
+    justify-self:start;max-width:100%;
+    width:100%;
+  }
+  .entry:nth-child(odd) .entry-spine,
+  .entry:nth-child(even) .entry-spine{grid-column:1;grid-row:1;}
+  .entry:nth-child(odd) .entry-empty,
+  .entry:nth-child(even) .entry-empty{display:none;}
+  .entry-node{width:36px;height:36px;font-size:.85rem;}
+  .card-body{padding:clamp(12px,3vw,18px);}
+  .card-title{font-size:1rem;}
+  .card-note{font-size:.82rem;}
+  .timeline-end{align-items:flex-start;padding-left:4px;}
+  .back-btn{padding:8px 14px;}
+  .page{padding-top:clamp(70px,12vh,100px);}
+}
+
+/* ══ TABLET ══ */
+@media(min-width:601px) and (max-width:900px){
+  .entry-card{max-width:clamp(220px,42vw,360px);}
+  .entry{grid-template-columns:1fr 52px 1fr;}
+}
+
+/* ══ LARGE DESKTOP ══ */
+@media(min-width:1200px){
+  .entry-card{max-width:440px;}
+  .timeline{max-width:1100px;}
+}
+@media(min-width:1920px){
+  .timeline{max-width:1400px;}
+  .entry-card{max-width:560px;}
+  .entry{grid-template-columns:1fr 80px 1fr;}
+}
+@media(min-width:2560px){
+  .timeline{max-width:1900px;}
+  .entry-card{max-width:760px;}
+  .entry{grid-template-columns:1fr 100px 1fr;padding:60px 0;}
+  .card-body{padding:32px;}
+  .card-title{font-size:1.8rem;}
+  .card-note{font-size:1.1rem;}
+  .entry-node{width:72px;height:72px;font-size:1.8rem;}
+}
+@media(min-width:3840px){
+  .timeline{max-width:2800px;}
+  .entry-card{max-width:1100px;}
+  .entry{grid-template-columns:1fr 120px 1fr;padding:80px 0;}
+  .card-body{padding:48px;}
+  .card-title{font-size:2.4rem;}
+  .card-note{font-size:1.5rem;line-height:2;}
+  .entry-node{width:100px;height:100px;font-size:2.4rem;}
+  .entry-year{font-size:1.4rem;}
+}
+
+/* ══ HOVER only on non-touch ══ */
+@media(hover:none){
+  .entry-card:hover{transform:none;box-shadow:0 8px 40px rgba(0,0,0,.4);}
+  .entry-card:hover .card-divider{width:40px;}
+  .card-shimmer{display:none;}
+  .entry:hover .entry-node{box-shadow:0 0 20px rgba(212,175,102,.15);}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .entry,.timeline-end{transition:none;opacity:1;transform:none;}
+  .end-node{animation:none;}
+}
+</style>
+
+<style>
+/* ══════════════════════════════════════════════════════
+   UNIVERSAL RESPONSIVE — 5in phone → 45in TV
+   320px  → small phones
+   375px  → iPhone SE / standard phones
+   480px  → large phones
+   600px  → small tablets / foldables
+   768px  → tablets portrait
+   1024px → tablets landscape / small laptops
+   1280px → laptops
+   1440px → large laptops / monitors
+   1920px → Full HD / large monitors
+   2560px → 2K / 27in monitors
+   3840px → 4K TVs
+   5120px → 45in+ large TVs
+══════════════════════════════════════════════════════ */
+
+/* ── 5in small phones (320–374px) ── */
+@media(max-width:374px){
+  :root{
+    --fs-xs:.55rem;--fs-sm:.68rem;--fs-base:.78rem;
+    --fs-md:.9rem;--fs-lg:1.3rem;--fs-xl:1.6rem;
+    --sp-xs:4px;--sp-sm:8px;--sp-md:12px;--sp-lg:18px;--sp-xl:24px;
+  }
+  .back-btn{padding:7px 11px;font-size:.52rem;}
+  .page{padding-top:60px !important;}
+}
+
+/* ── Standard phones (375–479px) ── */
+@media(min-width:375px) and (max-width:479px){
+  :root{
+    --fs-xs:.58rem;--fs-sm:.72rem;--fs-base:.82rem;
+    --fs-md:.95rem;--fs-lg:1.4rem;--fs-xl:1.8rem;
+  }
+}
+
+/* ── Large phones (480–599px) ── */
+@media(min-width:480px) and (max-width:599px){
+  :root{
+    --fs-xs:.6rem;--fs-sm:.75rem;--fs-base:.85rem;
+    --fs-md:1rem;--fs-lg:1.5rem;--fs-xl:2rem;
+  }
+}
+
+/* ── Tablets portrait / foldables (600–767px) ── */
+@media(min-width:600px) and (max-width:767px){
+  :root{
+    --fs-xs:.62rem;--fs-sm:.78rem;--fs-base:.9rem;
+    --fs-md:1.05rem;--fs-lg:1.7rem;--fs-xl:2.2rem;
+  }
+}
+
+/* ── Tablets landscape (768–1023px) ── */
+@media(min-width:768px) and (max-width:1023px){
+  :root{
+    --fs-xs:.65rem;--fs-sm:.82rem;--fs-base:.95rem;
+    --fs-md:1.1rem;--fs-lg:1.9rem;--fs-xl:2.6rem;
+  }
+}
+
+/* ── Small laptops (1024–1279px) ── */
+@media(min-width:1024px) and (max-width:1279px){
+  :root{
+    --fs-xs:.66rem;--fs-sm:.84rem;--fs-base:.97rem;
+    --fs-md:1.12rem;--fs-lg:2rem;--fs-xl:2.8rem;
+  }
+}
+
+/* ── Laptops / monitors (1280–1439px) ── */
+@media(min-width:1280px) and (max-width:1439px){
+  :root{
+    --fs-xs:.68rem;--fs-sm:.86rem;--fs-base:1rem;
+    --fs-md:1.15rem;--fs-lg:2.2rem;--fs-xl:3rem;
+  }
+}
+
+/* ── Large monitors (1440–1919px) ── */
+@media(min-width:1440px) and (max-width:1919px){
+  :root{
+    --fs-xs:.72rem;--fs-sm:.9rem;--fs-base:1.05rem;
+    --fs-md:1.2rem;--fs-lg:2.4rem;--fs-xl:3.2rem;
+    --sp-lg:48px;--sp-xl:64px;
+  }
+}
+
+/* ── Full HD monitors (1920–2559px) ── */
+@media(min-width:1920px) and (max-width:2559px){
+  :root{
+    --fs-xs:.78rem;--fs-sm:.98rem;--fs-base:1.12rem;
+    --fs-md:1.3rem;--fs-lg:2.8rem;--fs-xl:3.8rem;
+    --sp-lg:56px;--sp-xl:72px;
+  }
+  .back-btn{padding:12px 24px;font-size:.75rem;}
+}
+
+/* ── 2K monitors (2560–3839px) ── */
+@media(min-width:2560px) and (max-width:3839px){
+  :root{
+    --fs-xs:1rem;--fs-sm:1.2rem;--fs-base:1.4rem;
+    --fs-md:1.65rem;--fs-lg:3.5rem;--fs-xl:5rem;
+    --sp-xs:12px;--sp-sm:20px;--sp-md:32px;--sp-lg:64px;--sp-xl:90px;
+  }
+  .back-btn{padding:16px 32px;font-size:1rem;border-radius:999px;}
+  .nav-btn{padding:24px 32px !important;font-size:.95rem !important;}
+}
+
+/* ── 4K TVs (3840–5119px) ── */
+@media(min-width:3840px) and (max-width:5119px){
+  :root{
+    --fs-xs:1.4rem;--fs-sm:1.7rem;--fs-base:1.9rem;
+    --fs-md:2.2rem;--fs-lg:4.8rem;--fs-xl:7rem;
+    --sp-xs:18px;--sp-sm:28px;--sp-md:48px;--sp-lg:90px;--sp-xl:130px;
+  }
+  .back-btn{padding:22px 44px;font-size:1.4rem;border-radius:999px;}
+  .nav-btn{padding:36px 48px !important;font-size:1.3rem !important;max-width:320px !important;}
+  .nav-btn-icon{font-size:3rem !important;}
+}
+
+/* ── 45in+ large TVs (5120px+) ── */
+@media(min-width:5120px){
+  :root{
+    --fs-xs:1.8rem;--fs-sm:2.2rem;--fs-base:2.5rem;
+    --fs-md:2.8rem;--fs-lg:6rem;--fs-xl:9rem;
+    --sp-xs:24px;--sp-sm:36px;--sp-md:60px;--sp-lg:120px;--sp-xl:170px;
+  }
+  .back-btn{padding:28px 56px;font-size:1.8rem;border-radius:999px;}
+  .nav-btn{padding:48px 64px !important;font-size:1.7rem !important;max-width:420px !important;}
+  .nav-btn-icon{font-size:4rem !important;}
+}
+
+/* ── Landscape phones ── */
+@media(max-height:500px) and (orientation:landscape){
+  .page{padding-top:50px !important;padding-bottom:20px !important;}
+  .header{gap:6px !important;}
+}
+
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<a class="back-btn" href="nav.html">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  Back
+</a>
+
+<div class="page">
+  <div class="header">
+    <div class="eyebrow-row">
+      <div class="eline"></div><span class="edot">✦</span>
+      <span class="eyebrow">Our Journey</span>
+      <span class="edot">✦</span><div class="eline r"></div>
+    </div>
+    <h1 class="page-title">Our Story, <em>Together</em></h1>
+    <p class="page-sub">2023 — 2026 · A Story Worth Telling</p>
+  </div>
+
+  <div class="timeline" id="timeline">
+
+    <!-- 2023 -->
+    <div class="entry">
+      <div class="entry-empty"><div class="connector"></div></div>
+      <div class="entry-spine">
+        <div class="entry-node">🌙</div>
+        <div class="entry-year">2023</div>
+      </div>
+      <div class="entry-card">
+        <div class="card-visual">
+          <img class="card-photo" src="time1.jpg" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:1;">
+          <div style="width:100%;height:100%;background:linear-gradient(145deg,#0a0a1a,#10101f);display:flex;align-items:center;justify-content:center;position:absolute;inset:0;">
+            <div style="text-align:center;padding:20px;">
+              <div style="font-size:2rem;margin-bottom:8px;">📸</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:rgba(212,175,102,0.5);letter-spacing:.15em;">Add your photo</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-milestone">🌟 12 September 2023 · First Meeting</div>
+          <div class="card-title">The Day We Met</div>
+          <div class="card-divider"></div>
+          <p class="card-note">I didn't know it then. I had no way of knowing. But the day we met — through a common friend, in the most ordinary of moments — was the day something quietly changed for me. You were a stranger, and yet something about that first meeting stayed with me long after it ended. I didn't know your story yet, didn't know how much space you'd one day take up in my life. But the universe knew. And it brought us together anyway. I'm so glad it did.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2024 -->
+    <div class="entry">
+      <div class="entry-card">
+        <div class="card-visual">
+          <img class="card-photo" src="time2.jpg" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:1;">
+          <div style="width:100%;height:100%;background:linear-gradient(145deg,#1a0d0a,#201208);display:flex;align-items:center;justify-content:center;position:absolute;inset:0;">
+            <div style="text-align:center;padding:20px;">
+              <div style="font-size:2rem;margin-bottom:8px;">📸</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:rgba(212,175,102,0.5);letter-spacing:.15em;">Add your photo</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-milestone">💬 2024 · First Conversations</div>
+          <div class="card-title">When We Started Talking</div>
+          <div class="card-divider"></div>
+          <p class="card-note">It started with a message. Just one. And then another. And before I even realised it, talking to you had become the part of my day I looked forward to the most. You listened in a way most people don't. You cared without being asked to. Every conversation felt like something I wanted to hold onto. I didn't say it out loud back then — but somewhere in those messages, I found a person who actually felt like home. And that's not something you find twice in a lifetime.</p>
+        </div>
+      </div>
+      <div class="entry-spine">
+        <div class="entry-node">🤝</div>
+        <div class="entry-year">2024</div>
+      </div>
+      <div class="entry-empty"><div class="connector"></div></div>
+    </div>
+
+    <!-- 2025 -->
+    <div class="entry">
+      <div class="entry-empty"><div class="connector"></div></div>
+      <div class="entry-spine">
+        <div class="entry-node">🌸</div>
+        <div class="entry-year">2025</div>
+      </div>
+      <div class="entry-card">
+        <div class="card-visual">
+          <img class="card-photo" src="time3.jpg" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:1;">
+          <div style="width:100%;height:100%;background:linear-gradient(145deg,#0d1a14,#081410);display:flex;align-items:center;justify-content:center;position:absolute;inset:0;">
+            <div style="text-align:center;padding:20px;">
+              <div style="font-size:2rem;margin-bottom:8px;">📸</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.9rem;color:rgba(212,175,102,0.5);letter-spacing:.15em;">Add your photo</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-milestone">💛 2025 · She Became My Sister</div>
+          <div class="card-title">Family, Fights & Everything In Between</div>
+          <div class="card-divider"></div>
+          <p class="card-note">At some point, I stopped calling you my friend — not because things got worse, but because that word was no longer enough. You had become my sister. And with that came everything real relationships carry — the warmth, yes, but also the weight. We fought. We hurt each other with words we can't take back. There were silences that felt like walls, days when we stopped talking and I didn't know if we'd find our way back. Those moments broke something in me. Because losing you, even for a little while, was a kind of pain I wasn't ready for. You matter to me more than I ever knew how to say — and I hate that sometimes it took a fight for me to realise it.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026 -->
+    <div class="entry">
+      <div class="entry-card">
+        <div class="card-visual">
+          <img class="card-photo" src="time4.jpg" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:1;">
+          <svg viewBox="0 0 300 400" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;">
+            <defs>
+              <radialGradient id="bg26" cx="50%" cy="60%">
+                <stop offset="0%" stop-color="#1a0a24"/>
+                <stop offset="100%" stop-color="#080412"/>
+              </radialGradient>
+              <radialGradient id="cake26" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#ffcc00"/>
+                <stop offset="60%" stop-color="#ff8800" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#ff4400" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="300" height="400" fill="url(#bg26)"/>
+            <!-- confetti -->
+            <rect x="40" y="15" width="10" height="5" rx="2" fill="#ffd166" opacity="0.8" transform="rotate(25,45,17)"/>
+            <rect x="320" y="20" width="8" height="4" rx="2" fill="#ff6b9d" opacity="0.7" transform="rotate(-15,324,22)"/>
+            <rect x="80" y="10" width="10" height="5" rx="2" fill="#a78bfa" opacity="0.8" transform="rotate(40,85,12)"/>
+            <rect x="340" y="35" width="8" height="4" rx="2" fill="#67e8f9" opacity="0.7" transform="rotate(-30,344,37)"/>
+            <circle cx="60" cy="40" r="4" fill="#ff6b9d" opacity="0.6"/>
+            <circle cx="360" cy="30" r="3.5" fill="#a78bfa" opacity="0.7"/>
+            <!-- cake base -->
+            <rect x="140" y="148" width="120" height="55" rx="4" fill="#e85580" opacity="0.85"/>
+            <rect x="140" y="148" width="120" height="18" rx="4" fill="#d44070"/>
+            <!-- cake top layer -->
+            <rect x="160" y="108" width="80" height="42" rx="3" fill="#e85580" opacity="0.75"/>
+            <rect x="160" y="108" width="80" height="14" rx="3" fill="#d44070" opacity="0.9"/>
+            <!-- frosting drips -->
+            <path d="M160 122 Q165 130 170 122 Q175 130 180 122 Q185 130 190 122 Q195 130 200 122 Q205 130 210 122 Q215 130 220 122 Q225 130 230 122 Q235 130 240 122" stroke="white" stroke-width="3" fill="none" opacity="0.4"/>
+            <!-- candles -->
+            <rect x="185" y="88" width="6" height="22" rx="2" fill="#ffd166"/>
+            <rect x="209" y="84" width="6" height="26" rx="2" fill="#ff6b9d"/>
+            <!-- flames -->
+            <ellipse cx="188" cy="85" rx="4" ry="6" fill="#ffcc00" opacity="0.9"/>
+            <ellipse cx="188" cy="83" rx="2.5" ry="4" fill="#ffffff" opacity="0.7"/>
+            <ellipse cx="212" cy="81" rx="4" ry="6" fill="#ffcc00" opacity="0.9"/>
+            <ellipse cx="212" cy="79" rx="2.5" ry="4" fill="#ffffff" opacity="0.7"/>
+            <!-- glow from candles -->
+            <circle cx="188" cy="85" r="20" fill="url(#cake26)" opacity="0.5"/>
+            <circle cx="212" cy="81" r="20" fill="url(#cake26)" opacity="0.5"/>
+            <!-- stars -->
+            <circle cx="20" cy="20" r="1.5" fill="#fff" opacity="0.8"/>
+            <circle cx="70" cy="12" r="1" fill="#fff" opacity="0.7"/>
+            <circle cx="290" cy="15" r="1.2" fill="#ffe8c8" opacity="0.7"/>
+            <circle cx="380" cy="25" r="0.9" fill="#fff" opacity="0.6"/>
+            <!-- text -->
+            <text x="200" y="195" text-anchor="middle" font-family="serif" font-size="10" fill="rgba(255,255,255,0.4)" letter-spacing="2">Happy Birthday 🎂</text>
+          </svg>
+          <div class="card-shimmer"></div>
+        </div>
+        <div class="card-body">
+          <div class="card-milestone">🎂 15 May 2026 · Her Birthday</div>
+          <div class="card-title">Happy Birthday, Reshma 🎂</div>
+          <div class="card-divider"></div>
+          <p class="card-note">Today is your day, and I don't want to let it pass without saying everything I've been holding inside. Happy Birthday, Reshma. I know we've been through more than just the good times — the fights, the silence, the moments where it felt like things might not find their way back. But here I am, on your birthday, with nothing but honesty in my heart. I am sorry. For every word that hurt you, for every time I made you feel like you weren't enough, for every silence that went on longer than it should have. You became my sister — not just a friend, not just someone I know — my actual sister. And I didn't always treat you the way a sister deserves to be treated. That weight doesn't leave me easily. You have a heart that forgives too quietly and loves too loudly, and I took that for granted more times than I can count. If you can find it somewhere in that big heart of yours to forgive me — truly forgive me — I promise to be the person you always believed I could be. No more fights that end in walls. No more silences that say the wrong things. Just us. Just this. Here's to you, Sister — may this birthday bring you everything you've always given others: warmth, love, and the feeling of truly being seen. 🎉✨</p>
+        </div>
+      </div>
+      <div class="entry-spine">
+        <div class="entry-node">🎂</div>
+        <div class="entry-year">2026</div>
+      </div>
+      <div class="entry-empty"><div class="connector"></div></div>
+    </div>
+
+  </div><!-- end timeline -->
+
+  <!-- end node -->
+  <div class="timeline-end" id="timelineEnd">
+    <div class="end-node">✦</div>
+    <div class="end-label">Our Journey · One Beautiful Story</div>
+  </div>
+
+</div><!-- end page -->
+
+<script>
+// Media handler — supports both images and videos
+// Name images: time1.jpg, time2.jpg... OR videos: time1.mp4, time2.mp4...
+// If a matching .mp4 exists alongside the .jpg, the video is shown instead.
+
+document.querySelectorAll('.card-visual').forEach(visual => {
+  const img = visual.querySelector('img.card-photo');
+  if (!img) return;
+
+  const src = img.getAttribute('src');
+  if (!src) return;
+
+  // Derive video src by replacing extension with .mp4
+  const videoSrc = src.replace(/\.(jpg|jpeg|png|webp)$/i, '.mp4');
+
+  // Use fetch HEAD to check if the video file exists (avoids loading full video data)
+  fetch(videoSrc, { method: 'HEAD' })
+    .then(res => {
+      if (res.ok) {
+        // Video file exists — replace image with video
+        img.style.display = 'none';
+
+        // Hide the SVG illustration behind
+        const svgEl = visual.querySelector('svg');
+        if (svgEl) svgEl.style.display = 'none';
+
+        // Hide the placeholder div
+        const placeholder = visual.querySelector('div:not(.card-shimmer):not(.video-play-hint)');
+        if (placeholder) placeholder.style.display = 'none';
+
+        const video = document.createElement('video');
+        video.src = videoSrc;
+        video.controls = true;
+        video.playsInline = true;
+        video.muted = false;   // allow sound — user can unmute
+        video.loop = true;
+        video.preload = 'metadata';
+        video.style.cssText = `
+          width:100%;
+          height:100%;
+          display:block;
+          object-fit:cover;
+          position:absolute;
+          inset:0;
+          z-index:3;
+          border-radius:0;
+          outline:none;
+          background:#000;
+        `;
+
+        // Adjust aspect ratio once metadata loads
+        video.addEventListener('loadedmetadata', () => {
+          const isPortrait = video.videoHeight > video.videoWidth;
+          visual.style.aspectRatio = isPortrait ? '3/4' : '16/9';
+          visual.style.minHeight = 'unset';
+        });
+
+        visual.appendChild(video);
+
+        // Small video badge in corner
+        const hint = document.createElement('div');
+        hint.className = 'video-play-hint';
+        hint.innerHTML = `<svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>`;
+        visual.appendChild(hint);
+      } else {
+        // No video — use image
+        handleImage(img, visual);
+      }
+    })
+    .catch(() => {
+      // fetch failed (CORS / offline) — fall back gracefully to image
+      handleImage(img, visual);
+    });
+});
+
+function handleImage(img, visual) {
+  function applySize() {
+    if (!img.naturalWidth) return;
+    const isPortrait = img.naturalHeight > img.naturalWidth;
+    visual.style.aspectRatio = isPortrait ? '3/4' : '16/9';
+  }
+  if (img.complete && img.naturalWidth) applySize();
+  else img.addEventListener('load', applySize);
+  img.addEventListener('error', () => {
+    img.style.display = 'none';
+    visual.style.aspectRatio = '3/4';
+  });
+}
+
+// Scroll-triggered reveal
+const entries = document.querySelectorAll('.entry');
+const endNode = document.getElementById('timelineEnd');
+
+const observer = new IntersectionObserver((items) => {
+  items.forEach(item => {
+    if(item.isIntersecting){
+      item.target.classList.add('visible');
+      observer.unobserve(item.target);
+    }
+  });
+}, {threshold: 0.15});
+
+entries.forEach((e, i) => {
+  e.style.transitionDelay = `${i * 0.05}s`;
+  observer.observe(e);
+});
+observer.observe(endNode);
+
+// trigger first few immediately
+setTimeout(() => {
+  entries.forEach(e => {
+    const rect = e.getBoundingClientRect();
+    if(rect.top < window.innerHeight) e.classList.add('visible');
+  });
+  const endRect = endNode.getBoundingClientRect();
+  if(endRect.top < window.innerHeight) endNode.classList.add('visible');
+}, 100);
+</script>
+</body>
+</html>
