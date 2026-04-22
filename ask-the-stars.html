@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="theme-color" content="#020510"/>
+<title>Ask the Stars</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Jost:wght@200;300;400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#020510;--gold:#d4af66;--gold-lt:#f0d080;
+  --silver:#c8d8f0;--cream:#f5ede0;--muted:#7a8aaa;
+  --fs-xs:clamp(.6rem,1.2vw,.7rem);
+  --fs-sm:clamp(.78rem,1.6vw,.9rem);
+  --fs-md:clamp(1rem,2.2vw,1.2rem);
+  --fs-lg:clamp(1.4rem,3.5vw,2.2rem);
+  --fs-xl:clamp(2rem,5vw,3.2rem);
+}
+html,body{min-height:100%;overflow-x:hidden;background:var(--bg);
+  font-family:'Jost',sans-serif;color:var(--cream);-webkit-text-size-adjust:100%;}
+
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+.aurora{position:fixed;top:0;left:0;right:0;height:60%;z-index:1;pointer-events:none;
+  opacity:.15;
+  background:
+    radial-gradient(ellipse 80% 30% at 20% 10%,rgba(100,200,255,.35) 0%,transparent 70%),
+    radial-gradient(ellipse 60% 25% at 75% 5%,rgba(150,100,255,.28) 0%,transparent 70%),
+    radial-gradient(ellipse 50% 20% at 50% 15%,rgba(80,255,180,.18) 0%,transparent 60%);
+  animation:auroraPulse 7s ease-in-out infinite alternate;}
+@keyframes auroraPulse{0%{opacity:.1;}100%{opacity:.2;}}
+
+.back-btn{position:fixed;top:clamp(14px,3vh,24px);left:clamp(14px,3vw,28px);z-index:60;
+  display:flex;align-items:center;gap:8px;padding:10px 18px;
+  border:1px solid rgba(212,175,102,.2);border-radius:99px;
+  background:rgba(2,5,16,.8);color:var(--gold);font-family:'Jost',sans-serif;
+  font-size:var(--fs-xs);font-weight:300;letter-spacing:.18em;text-transform:uppercase;
+  cursor:pointer;text-decoration:none;backdrop-filter:blur(12px);
+  transition:border-color .3s,background .3s,transform .2s;-webkit-tap-highlight-color:transparent;}
+.back-btn:hover{border-color:rgba(212,175,102,.5);background:rgba(212,175,102,.08);transform:translateY(-1px);}
+.back-btn svg{width:14px;height:14px;fill:none;stroke:var(--gold);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+.page{position:relative;z-index:10;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(80px,12vh,120px) clamp(16px,4vw,48px) clamp(50px,8vh,90px);
+  gap:clamp(24px,4vw,40px);}
+
+/* header */
+.header{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;
+  animation:riseIn 1s cubic-bezier(.16,1,.3,1) both;}
+@keyframes riseIn{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.star-row{display:flex;align-items:center;gap:16px;}
+.sline{width:clamp(24px,6vw,60px);height:1px;background:linear-gradient(90deg,transparent,var(--gold));}
+.sline.r{background:linear-gradient(90deg,var(--gold),transparent);}
+.sdot{font-size:.9rem;color:var(--gold);filter:drop-shadow(0 0 6px var(--gold));}
+.eyebrow{font-size:var(--fs-xs);font-weight:200;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:var(--fs-xl);font-weight:300;color:var(--cream);line-height:1.1;}
+.page-title em{font-style:italic;color:var(--gold-lt);text-shadow:0 0 30px rgba(212,175,102,.4);}
+.page-sub{font-size:var(--fs-xs);font-weight:200;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;}
+
+/* crystal orb */
+.orb-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:clamp(16px,3vw,28px);
+  animation:riseIn 1s cubic-bezier(.16,1,.3,1) .2s both;
+}
+.orb-container{
+  position:relative;
+  width:clamp(160px,35vw,240px);
+  height:clamp(160px,35vw,240px);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.orb{
+  width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle at 35% 32%,
+    rgba(200,220,255,.25) 0%,
+    rgba(120,160,255,.12) 25%,
+    rgba(80,100,200,.06) 50%,
+    rgba(30,40,120,.04) 75%,
+    transparent 100%);
+  border:1px solid rgba(200,220,255,.15);
+  box-shadow:
+    0 0 60px rgba(100,150,255,.15),
+    0 0 120px rgba(100,150,255,.08),
+    inset 0 0 40px rgba(200,220,255,.05);
+  position:relative;overflow:hidden;
+  transition:box-shadow .4s ease;
+}
+.orb-canvas{position:absolute;inset:0;border-radius:50%;width:100%;height:100%;}
+.orb-shine{
+  position:absolute;top:8%;left:12%;
+  width:30%;height:20%;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(255,255,255,.25),transparent);
+  filter:blur(4px);pointer-events:none;
+}
+.orb-shimmer{
+  position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%,rgba(100,150,255,.04) 100%);
+  pointer-events:none;
+}
+.orb-container:hover .orb{
+  box-shadow:0 0 80px rgba(140,180,255,.3),0 0 160px rgba(100,150,255,.15),inset 0 0 60px rgba(200,220,255,.08);
+}
+.orb-container.pulsing .orb{
+  animation:orbPulse 1.5s ease-in-out infinite;
+}
+@keyframes orbPulse{
+  0%,100%{box-shadow:0 0 60px rgba(140,180,255,.2),0 0 120px rgba(100,150,255,.1);}
+  50%{box-shadow:0 0 100px rgba(180,220,255,.5),0 0 200px rgba(140,180,255,.25),0 0 300px rgba(100,150,255,.1);}
+}
+.orb-glow-ring{
+  position:absolute;inset:-8px;border-radius:50%;
+  border:1px solid rgba(212,175,102,.12);
+  animation:ringRotate 12s linear infinite;
+  pointer-events:none;
+}
+.orb-glow-ring::before{
+  content:'✦';position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  font-size:.7rem;color:var(--gold);opacity:.6;
+  filter:drop-shadow(0 0 4px var(--gold));
+}
+@keyframes ringRotate{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+.orb-label{
+  font-size:var(--fs-xs);letter-spacing:.25em;text-transform:uppercase;
+  color:var(--muted);font-weight:200;
+  animation:blink 2.5s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:.4;}50%{opacity:1;}}
+
+/* question input */
+.question-wrap{
+  width:100%;max-width:560px;
+  display:flex;flex-direction:column;gap:14px;
+  animation:riseIn 1s cubic-bezier(.16,1,.3,1) .35s both;
+}
+.question-label{
+  font-size:var(--fs-xs);letter-spacing:.25em;text-transform:uppercase;
+  color:var(--gold);font-weight:200;opacity:.75;
+  display:flex;align-items:center;gap:10px;
+}
+.question-label::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,175,102,.3),transparent);}
+.question-input{
+  width:100%;
+  background:rgba(255,255,255,.025);
+  border:1px solid rgba(212,175,102,.18);
+  border-radius:4px;
+  padding:clamp(14px,2.5vw,18px) clamp(16px,3vw,22px);
+  color:var(--cream);
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1rem,2.2vw,1.2rem);
+  font-style:italic;
+  font-weight:300;
+  outline:none;
+  resize:none;
+  line-height:1.6;
+  min-height:80px;
+  transition:border-color .3s,background .3s,box-shadow .3s;
+  -webkit-text-size-adjust:100%;
+}
+.question-input::placeholder{color:rgba(245,237,224,.2);}
+.question-input:focus{
+  border-color:rgba(212,175,102,.45);
+  background:rgba(212,175,102,.03);
+  box-shadow:0 0 0 3px rgba(212,175,102,.06);
+}
+.ask-btn{
+  align-self:center;
+  padding:clamp(12px,2.5vw,16px) clamp(28px,5vw,48px);
+  border:1px solid rgba(212,175,102,.3);border-radius:99px;
+  background:rgba(212,175,102,.06);
+  color:var(--gold);font-family:'Jost',sans-serif;
+  font-size:var(--fs-xs);font-weight:300;letter-spacing:.28em;text-transform:uppercase;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color .3s,background .3s,transform .2s,box-shadow .3s;
+  -webkit-tap-highlight-color:transparent;
+}
+.ask-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(212,175,102,.15),transparent 60%);
+  opacity:0;transition:opacity .3s;
+}
+.ask-btn:hover{border-color:rgba(212,175,102,.6);background:rgba(212,175,102,.1);transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,175,102,.12);}
+.ask-btn:hover::before{opacity:1;}
+.ask-btn:active{transform:translateY(0);}
+.ask-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+/* response */
+.response-wrap{
+  width:100%;max-width:640px;
+  opacity:0;transform:translateY(24px);
+  transition:opacity .8s ease,transform .8s cubic-bezier(.16,1,.3,1);
+  pointer-events:none;
+}
+.response-wrap.show{opacity:1;transform:translateY(0);pointer-events:all;}
+
+.response-card{
+  background:linear-gradient(160deg,rgba(255,255,255,.03) 0%,rgba(100,150,255,.02) 100%);
+  border:1px solid rgba(212,175,102,.15);
+  border-radius:8px;
+  padding:clamp(24px,4vw,40px) clamp(20px,4vw,36px);
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 0 1px rgba(0,0,0,.3),0 30px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(212,175,102,.07);
+  position:relative;overflow:hidden;
+}
+.response-card::before,.response-card::after{
+  content:'';position:absolute;width:20px;height:20px;
+  border-color:rgba(212,175,102,.2);border-style:solid;
+}
+.response-card::before{top:12px;left:12px;border-width:1px 0 0 1px;}
+.response-card::after{bottom:12px;right:12px;border-width:0 1px 1px 0;}
+
+.response-eyebrow{
+  display:flex;align-items:center;gap:10px;
+  font-size:var(--fs-xs);letter-spacing:.25em;text-transform:uppercase;
+  color:var(--gold);font-weight:200;opacity:.7;
+  margin-bottom:16px;
+}
+.response-eyebrow::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(212,175,102,.3),transparent);}
+
+.response-text{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1rem,2.3vw,1.25rem);
+  font-weight:300;font-style:italic;
+  color:var(--cream);line-height:1.9;
+  min-height:60px;
+}
+.cursor-blink{
+  display:inline-block;width:2px;height:1.1em;
+  background:var(--gold-lt);vertical-align:middle;margin-left:2px;
+  animation:cursorBlink .8s ease-in-out infinite;
+}
+@keyframes cursorBlink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+.response-sign{
+  margin-top:20px;
+  font-size:var(--fs-xs);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);font-weight:200;
+  display:flex;align-items:center;gap:8px;
+}
+.response-sign::before{content:'— ';color:var(--gold);}
+
+.response-shimmer{
+  position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 30%,rgba(200,220,255,.04) 50%,transparent 70%);
+  transform:translateX(-120%);
+  animation:shimmerSweep .9s ease .1s forwards;
+  pointer-events:none;
+}
+@keyframes shimmerSweep{to{transform:translateX(130%);}}
+
+/* stars floating effect */
+.float-star{
+  position:fixed;pointer-events:none;
+  font-size:clamp(.6rem,1.2vw,.8rem);
+  color:var(--gold);opacity:0;z-index:50;
+  animation:floatStar 2s ease forwards;
+}
+@keyframes floatStar{
+  0%{opacity:0;transform:translateY(0) scale(.5);}
+  25%{opacity:.8;transform:translateY(-20px) scale(1);}
+  100%{opacity:0;transform:translateY(-90px) scale(.7);}
+}
+
+/* mobile */
+@media(max-width:480px){
+  .page{padding-top:70px;gap:20px;}
+  .back-btn{padding:8px 12px;font-size:.55rem;}
+  .orb-container{width:140px;height:140px;}
+  .question-input{font-size:1rem;}
+}
+@media(prefers-reduced-motion:reduce){
+  .orb-glow-ring{animation:none;}
+  .orb-container.pulsing .orb{animation:none;}
+  .aurora{animation:none;}
+}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<div class="aurora"></div>
+
+<a class="back-btn" href="nav.html">
+  <svg viewBox="0 0 16 16"><polyline points="10 3 5 8 10 13"/></svg>Back
+</a>
+
+<div class="page">
+  <div class="header">
+    <div class="star-row">
+      <div class="sline"></div><span class="sdot">✦</span>
+      <span class="eyebrow">The Cosmos Listens</span>
+      <span class="sdot">✦</span><div class="sline r"></div>
+    </div>
+    <h1 class="page-title">Ask the <em>Stars</em></h1>
+    <p class="page-sub">Speak your question into the universe</p>
+  </div>
+
+  <div class="orb-wrap">
+    <div class="orb-container" id="orbContainer" onclick="activateOrb()">
+      <div class="orb">
+        <canvas class="orb-canvas" id="orbCanvas"></canvas>
+        <div class="orb-shine"></div>
+        <div class="orb-shimmer"></div>
+      </div>
+      <div class="orb-glow-ring"></div>
+    </div>
+    <div class="orb-label" id="orbLabel">Touch the orb to begin</div>
+  </div>
+
+  <div class="question-wrap" id="questionWrap" style="display:none;">
+    <div class="question-label">✦ Your Question</div>
+    <textarea class="question-input" id="questionInput"
+      placeholder="Ask anything that weighs on your heart…"
+      rows="3"></textarea>
+    <button class="ask-btn" id="askBtn" onclick="askStars()">
+      ✦ &nbsp; Consult the Stars &nbsp; ✦
+    </button>
+  </div>
+
+  <div class="response-wrap" id="responseWrap">
+    <div class="response-card" id="responseCard">
+      <div class="response-shimmer" id="responseShimmer"></div>
+      <div class="response-eyebrow">✦ The Stars Speak</div>
+      <div class="response-text" id="responseText"></div>
+      <div class="response-sign" id="responseSign">The Universe, written in starlight</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── STAR FIELD ── */
+(function(){
+  const c=document.getElementById('bgCanvas'),ctx=c.getContext('2d');
+  let W,H,stars=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;build();}
+  function build(){
+    stars=[];
+    const n=Math.floor((W*H)/2000);
+    for(let i=0;i<n;i++) stars.push({
+      x:Math.random()*W,y:Math.random()*H*.9,
+      r:Math.random()*1.3+.2,a:Math.random()*.7+.15,
+      speed:Math.random()*.005+.002,phase:Math.random()*Math.PI*2,
+      col:['#ffffff','#ffe8c8','#c8d8ff','#ffd8e8'][Math.floor(Math.random()*4)]
+    });
+  }
+  function draw(ts){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      const tw=s.a*(0.4+0.6*Math.sin(ts*s.speed+s.phase));
+      ctx.globalAlpha=Math.max(0,tw);
+      if(s.r>1){ctx.shadowBlur=s.r*5;ctx.shadowColor=s.col;}
+      ctx.fillStyle=s.col;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',resize);resize();requestAnimationFrame(draw);
+})();
+
+/* ── ORB CANVAS NEBULA ── */
+(function(){
+  const canvas=document.getElementById('orbCanvas');
+  const ctx=canvas.getContext('2d');
+  function resize(){
+    const c=document.getElementById('orbContainer');
+    canvas.width=c.offsetWidth;
+    canvas.height=c.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  const particles=[];
+  const colours=['rgba(120,160,255,','rgba(160,120,255,','rgba(100,200,220,','rgba(200,180,255,','rgba(212,175,102,'];
+  for(let i=0;i<60;i++){
+    const r=10+Math.random()*35;
+    const angle=Math.random()*Math.PI*2;
+    particles.push({
+      x:canvas.width/2+Math.cos(angle)*r*(0.2+Math.random()*0.8),
+      y:canvas.height/2+Math.sin(angle)*r*(0.2+Math.random()*0.8),
+      r:Math.random()*2.5+.5,
+      a:Math.random()*.4+.05,
+      speed:Math.random()*.008+.003,
+      phase:Math.random()*Math.PI*2,
+      col:colours[Math.floor(Math.random()*colours.length)],
+      drift:Math.random()*.3-.15,
+      driftY:Math.random()*.3-.15,
+    });
+  }
+  function draw(ts){
+    if(!canvas.width||!canvas.height){requestAnimationFrame(draw);return;}
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.drift*.015;p.y+=p.driftY*.015;
+      const cx=canvas.width/2,cy=canvas.height/2;
+      const dx=p.x-cx,dy=p.y-cy;
+      if(Math.sqrt(dx*dx+dy*dy)>canvas.width*.42){p.drift*=-1;p.driftY*=-1;}
+      const a=p.a*(0.3+0.7*Math.sin(ts*p.speed+p.phase));
+      ctx.globalAlpha=Math.max(0,a);
+      ctx.shadowBlur=p.r*4;ctx.shadowColor=p.col+'0.8)';
+      ctx.fillStyle=p.col+'0.9)';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+      ctx.shadowBlur=0;
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* ── ORB ACTIVATE ── */
+let orbActive=false;
+function activateOrb(){
+  if(orbActive)return;
+  orbActive=true;
+  const orb=document.getElementById('orbContainer');
+  const label=document.getElementById('orbLabel');
+  const qw=document.getElementById('questionWrap');
+  orb.classList.add('pulsing');
+  label.textContent='The stars are awakening…';
+  spawnStars(orb);
+  setTimeout(()=>{
+    orb.classList.remove('pulsing');
+    label.textContent='Ask what your heart holds';
+    qw.style.display='flex';
+    qw.style.animation='riseIn .7s cubic-bezier(.16,1,.3,1) both';
+    document.getElementById('questionInput').focus();
+  },1800);
+}
+
+function spawnStars(el){
+  const r=el.getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const syms=['✦','✧','⋆','·','*'];
+  for(let i=0;i<12;i++){
+    setTimeout(()=>{
+      const s=document.createElement('div');
+      s.className='float-star';
+      s.textContent=syms[Math.floor(Math.random()*syms.length)];
+      const ang=Math.random()*Math.PI*2;
+      const d=40+Math.random()*50;
+      s.style.left=(cx+Math.cos(ang)*d-8)+'px';
+      s.style.top=(cy+Math.sin(ang)*d-8)+'px';
+      document.body.appendChild(s);
+      setTimeout(()=>s.remove(),2100);
+    },i*120);
+  }
+}
+
+/* ── ASK STARS ── */
+async function askStars(){
+  const q=document.getElementById('questionInput').value.trim();
+  if(!q)return;
+
+  const btn=document.getElementById('askBtn');
+  const respWrap=document.getElementById('responseWrap');
+  const respText=document.getElementById('responseText');
+  const card=document.getElementById('responseCard');
+  const orb=document.getElementById('orbContainer');
+
+  btn.disabled=true;
+  btn.textContent='✦  The stars are reading…  ✦';
+  orb.classList.add('pulsing');
+  respWrap.classList.remove('show');
+  respText.innerHTML='';
+
+  // re-inject shimmer
+  const old=document.getElementById('responseShimmer');
+  if(old)old.remove();
+  const sh=document.createElement('div');
+  sh.className='response-shimmer';sh.id='responseShimmer';
+  card.prepend(sh);
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`You are the mystical voice of the night sky, answering questions for a young woman named Sivakami on her birthday. 
+Speak as ancient starlight would — poetic, warm, deeply wise, personal, and hopeful. 
+Use beautiful imagery: stars, moonlight, seasons, tides, flowers blooming, paths through forests.
+Your answers are 3-5 sentences. Never be vague or generic — be specific, intimate, and profound.
+Speak directly to her soul. No disclaimers. Pure magic.`,
+        messages:[{role:'user',content:`Sivakami asks the stars: "${q}"`}]
+      })
+    });
+    const data=await res.json();
+    const answer=data.content?.[0]?.text||'The stars are silent tonight — but they shine for you still. ✦';
+    
+    orb.classList.remove('pulsing');
+    respWrap.classList.add('show');
+    typeText(respText,answer);
+  }catch(e){
+    orb.classList.remove('pulsing');
+    respWrap.classList.add('show');
+    typeText(respText,'The stars whisper: trust the path that calls to your heart most quietly — for that whisper is the universe speaking. ✦');
+  }
+
+  btn.disabled=false;
+  btn.textContent='✦  Ask Again  ✦';
+  spawnStars(document.getElementById('orbContainer'));
+}
+
+function typeText(el,text){
+  el.innerHTML='';
+  const cursor=document.createElement('span');
+  cursor.className='cursor-blink';
+  el.appendChild(cursor);
+  let i=0;
+  const interval=setInterval(()=>{
+    if(i<text.length){
+      cursor.before(document.createTextNode(text[i]));
+      i++;
+    }else{
+      cursor.remove();
+      clearInterval(interval);
+    }
+  },28);
+}
+
+document.getElementById('questionInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askStars();}
+});
+</script>
+</body>
+</html>
